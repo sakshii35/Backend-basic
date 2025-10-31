@@ -1,0 +1,26 @@
+const express = require('express');
+const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+
+const app = express();
+app.use(bodyParser.json());
+
+mongoose.connect('mongodb://localhost:27017/bank', {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+const accountSchema = new mongoose.Schema({
+    username: String,
+    balance: Number
+});
+
+const Account = mongoose.model('Account', accountSchema);
+
+app.post('/transfer', async (req, res) => {
+    const { fromUsername, toUsername, amount } = req.body;
+
+    if (amount <= 0) return res.status(400).json({ error: 'Invalid transfer amount' });
+
+    const sender = await Account.findOne({ username: fromUsername });
+    const receiver = await Account.findOne({ username: toUsername });
